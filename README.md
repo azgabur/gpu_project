@@ -32,3 +32,8 @@ Testing can create random input csv files and can run test framework while outpu
 3 iteration:
 - More optimalisations of kernel
 ...
+
+## Additional outputs
+- Performance report (file docs/performance.txt)
+- Bottleneck analysis (file docs/bottleneck.txt
+- What kernel optimalisations were used (file docs/optimalisations.txt)
