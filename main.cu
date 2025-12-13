@@ -1,46 +1,239 @@
-#include "kernel_CPU.c"
-#include "kernel.cu"
-#include "support.h"
+#include <stdlib.h>
+#include <unistd.h>
 #include <stdio.h>
 
+#include "cuda_support.h"
+#include "simulation.h"
+#include "benchmark.h"
+#include "kernel.h"
 
-int main() {
-    int clients  = 4;
-    int periods  = 3;
-    int changes[] = {
-        1,  2,  3,  4,
-        1, -1,  0,  2,
-        2,  2, -3,  1
-    };
 
-    int size_changes = clients * periods;
-    int size_account = clients * periods;
-    int size_sum     = periods;
- 
-    int *sum = (int*)malloc(size_sum);
+int main(int argc, char *argv[]) {
 
-    int *d_changes, *d_account, *d_sum;
-    cudaMalloc((void**)&d_changes, size_changes * sizeof(int));
-    cudaMalloc((void**)&d_account, size_account * sizeof(int));
-    cudaMalloc((void**)&d_sum, size_sum * sizeof(int));
+    /* --- --- --- --- --- ------------------------ --- --- --- --- --- */
+    /* --- --- --- --- --- VARIABLES INITIALIZATION --- --- --- --- --- */
 
-    cudaMemcpy(d_changes, changes, size_changes * sizeof(int) , cudaMemcpyHostToDevice);
+    // value of CPU verification of the GPU results 
+    int verification_result;
 
-    solveGPU(d_changes, d_account, d_sum, clients, periods);
+    // timer to be used for performance measurement
+    Timer timer;
+
+    // Host variables
+    int *account_changes_h = NULL;
+    int *account_balance_h = NULL;
+    int *sums_per_period_h = NULL;
+
+    // Device variables
+    int *account_changes_d = NULL;
+    int *account_balance_d = NULL;
+    int *sums_per_period_d = NULL;
+
+    // Default problem size
+    int clients_num = 1000;
+    int periods_num = 1000;
+
+    // Parse command line arguments
+    int opt;
+    while ((opt = getopt(argc, argv, "vd:h?")) != -1) {
+        switch (opt) {
+            case 'v':
+                // enable results verification
+                // enable_verification is declared in benchmark.h
+                enable_verification = 1;
+                break;
+            case 'd':
+                // set time debug level
+                // time_debug_level is declared in benchmark.h
+                time_debug_level = atoi(optarg);
+                break;
+            case 'h': case '?': default:
+                fprintf(stderr, "Usage: %s [-v] [-d level] [clients] [periods]\n", argv[0]);
+                exit(EXIT_FAILURE);
+        }
+    }
+
+    // Get problem size from command line arguments if provided
+    if (optind < argc) {
+        periods_num = atoi(argv[optind]);
+        clients_num = atoi(argv[optind]);
+    }
+
+    optind++;
     
-    cudaMemcpy(sum, d_sum, size_sum * sizeof(int), cudaMemcpyDeviceToHost);
+    if (optind < argc) {
+        periods_num = atoi(argv[optind]);
+    }
+
+    // Calculate sizes of memory allocations
+    size_t account_changes_size = sizeof(int) * (size_t) clients_num * (size_t) periods_num;
+    size_t account_balance_size = sizeof(int) * (size_t) clients_num * (size_t) periods_num;
+    size_t sums_per_period_size = sizeof(int) * (size_t) periods_num;
 
 
-    printf("Sum by periode :\n");
-    for (int j = 0; j < periods; j++)
-        printf("periode %d = %d\n", j, sum[j]);
+    /* --- --- --- --- --- ---------------------- --- --- --- --- --- */
+    /* --- --- --- --- --- HOST MEMORY ALLOCATION --- --- --- --- --- */
 
-    // --- free GPU
-    cudaFree(d_changes);
-    cudaFree(d_account);
-    cudaFree(d_sum);
+    print_entry_label(PROBLEM_SETUP_START_MSG);
+    set_start_time(&timer, PROBLEM_SETUP_TIME);
 
-    free(sum);
+    // Allocate host memory
+    account_changes_h = (int *) malloc(account_changes_size);
+    account_balance_h = (int *) malloc(account_balance_size);
+    sums_per_period_h = (int *) malloc(sums_per_period_size);
 
-    return 0;
+    // Check host memory allocation (malloc returns NULL if allocation fails)
+    if (account_changes_h == NULL || sums_per_period_h == NULL || account_balance_h == NULL) {
+        fprintf(stderr, HOST_ALLOC_ERR_MSG);
+        return EXIT_FAILURE;
+    }
+
+
+    /* --- --- --- --- --- ----------------------- --- --- --- --- --- */
+    /* --- --- --- --- --- PROBLEM DATA GENERATION --- --- --- --- --- */
+
+    // Initialize host memory with generated data
+    generate_saving_accounts_array(account_changes_h, clients_num, periods_num);
+
+    set_end_time(&timer, PROBLEM_SETUP_TIME);
+    print_elapsed_time(&timer, PROBLEM_SETUP_TIME, OPERATION_COMPLETED_MSG);
+
+    
+    /* --- --- --- --- --- ------------------------ --- --- --- --- --- */
+    /* --- --- --- --- --- DEVICE MEMORY ALLOCATION --- --- --- --- --- */
+
+    print_entry_label(DEVICE_ALLOC_START_MSG);
+    set_start_time(&timer, DEVICE_ALLOC_TIME);
+
+    // Allocate device memory
+    CUDA_SAFE_CALL( cudaMalloc((void**) &account_changes_d, account_changes_size), DEVICE_ALLOC_ERR_MSG );
+    CUDA_SAFE_CALL( cudaMalloc((void**) &account_balance_d, account_balance_size), DEVICE_ALLOC_ERR_MSG );
+    CUDA_SAFE_CALL( cudaMalloc((void**) &sums_per_period_d, sums_per_period_size), DEVICE_ALLOC_ERR_MSG );
+
+    set_end_time(&timer, DEVICE_ALLOC_TIME);
+    print_elapsed_time(&timer, DEVICE_ALLOC_TIME, OPERATION_COMPLETED_MSG);
+
+    
+    /* --- --- --- --- --- ----------------------- --- --- --- --- --- */
+    /* --- --- --- --- --- DATA TRANSFER TO DEVICE --- --- --- --- --- */
+
+    print_entry_label(H2D_TRANSFER_START_MSG);
+    set_start_time(&timer, H2D_TRANSFER_TIME);
+
+    // Copy data from host to device
+    CUDA_SAFE_CALL( cudaMemcpy( account_changes_d, 
+                                account_changes_h,
+                                account_changes_size, 
+                                cudaMemcpyHostToDevice ), 
+                    H2D_TRANSFER_ERR_MSG );
+
+    // Synchronize device after data transfer
+    CUDA_SAFE_CALL( cudaDeviceSynchronize(), SYNCHRONIZE_ERR_MSG );
+
+    set_end_time(&timer, H2D_TRANSFER_TIME);
+    print_elapsed_time(&timer, H2D_TRANSFER_TIME, OPERATION_COMPLETED_MSG);
+
+    
+    /* --- --- --- --- --- ----------------- --- --- --- --- --- */
+    /* --- --- --- --- --- KERNELS LUANCHING --- --- --- --- --- */
+
+    print_entry_label(KERNEL_1_EXEC_START_MSG);
+    set_start_time(&timer, KERNEL_1_EXEC_TIME);
+
+    // First launch account balance kernel and check for errors
+    launch_account_balance_kernel(account_changes_d, account_balance_d, clients_num, periods_num);
+    CUDA_SAFE_CALL( cudaGetLastError(), KERNEL_1_EXEC_ERR_MSG );
+
+    // Synchronize device before launching next kernel
+    CUDA_SAFE_CALL( cudaDeviceSynchronize(), SYNCHRONIZE_ERR_MSG );
+
+    set_end_time(&timer, KERNEL_1_EXEC_TIME);
+    print_elapsed_time(&timer, KERNEL_1_EXEC_TIME, OPERATION_COMPLETED_MSG);
+
+    print_entry_label(KERNEL_2_EXEC_START_MSG);
+    set_start_time(&timer, KERNEL_2_EXEC_TIME);
+
+    // Second launch sums per period kernel and check for errors
+    launch_sums_per_period_kernel(account_balance_d, sums_per_period_d, clients_num, periods_num);
+    CUDA_SAFE_CALL( cudaGetLastError(), KERNEL_2_EXEC_ERR_MSG );
+
+    // Synchronize device after launching kernels
+    CUDA_SAFE_CALL( cudaDeviceSynchronize(), SYNCHRONIZE_ERR_MSG );
+
+    set_end_time(&timer, KERNEL_2_EXEC_TIME);
+    print_elapsed_time(&timer, KERNEL_2_EXEC_TIME, OPERATION_COMPLETED_MSG);
+
+    
+    /* --- --- --- --- --- --------------------- --- --- --- --- --- */
+    /* --- --- --- --- --- DATA TRANSFER TO HOST --- --- --- --- --- */
+
+    print_entry_label(D2H_TRANSFER_START_MSG);
+    set_start_time(&timer, D2H_TRANSFER_TIME);
+
+    // Copy result from device to host
+    CUDA_SAFE_CALL( cudaMemcpy( sums_per_period_h,
+                                sums_per_period_d,
+                                sums_per_period_size,
+                                cudaMemcpyDeviceToHost ), 
+                    D2H_TRANSFER_ERR_MSG );
+    CUDA_SAFE_CALL( cudaMemcpy( account_balance_h, 
+                                account_balance_d, 
+                                account_balance_size, 
+                                cudaMemcpyDeviceToHost ), 
+                    D2H_TRANSFER_ERR_MSG );
+
+    // Synchronize device after data transfer
+    CUDA_SAFE_CALL( cudaDeviceSynchronize(), SYNCHRONIZE_ERR_MSG );
+
+    set_end_time(&timer, D2H_TRANSFER_TIME);
+    print_elapsed_time(&timer, D2H_TRANSFER_TIME, OPERATION_COMPLETED_MSG);
+
+    
+    /* --- --- --- --- --- -------------------- --- --- --- --- --- */
+    /* --- --- --- --- --- RESULTS VERIFICATION --- --- --- --- --- */
+
+    if (enable_verification) {
+
+        print_entry_label(VERIFICATION_START_MSG);
+        set_start_time(&timer, VERIFICATION_TIME);
+
+        // Rsult verification with CPU computation
+        verification_result = verify_results_with_CPU( account_changes_h, 
+                                                       account_balance_h, 
+                                                       sums_per_period_h, 
+                                                       clients_num, 
+                                                       periods_num );
+
+        set_end_time(&timer, VERIFICATION_TIME);
+        print_elapsed_time(&timer, VERIFICATION_TIME, OPERATION_COMPLETED_MSG);
+
+        printf(verification_result
+            ? VERIFICATION_SUCCESS_MSG
+            : VERIFICATION_FAILURE_MSG);
+
+    }
+    
+    /* --- --- --- --- --- --------------- --- --- --- --- --- */
+    /* --- --- --- --- --- MEMORY CLEAN UP --- --- --- --- --- */
+
+    // Free device memory
+    if (account_changes_d)
+        CUDA_SAFE_CALL( cudaFree(account_changes_d), DEVICE_FREE_ERR_MSG );
+    if (account_balance_d)
+        CUDA_SAFE_CALL( cudaFree(account_balance_d), DEVICE_FREE_ERR_MSG );
+    if (sums_per_period_d)
+        CUDA_SAFE_CALL( cudaFree(sums_per_period_d), DEVICE_FREE_ERR_MSG );
+    
+    // Free host memory
+    free(account_changes_h);
+    free(sums_per_period_h);
+    free(account_balance_h);
+
+
+    /* --- --- --- --- --- -------------------- --- --- --- --- --- */
+    /* --- --- --- --- --- MAIN FUNCTION RETURN --- --- --- --- --- */
+
+    print_total_time(&timer, TOTAL_EXECUTION_TIME_MSG);
+
+    return EXIT_SUCCESS;
 }
