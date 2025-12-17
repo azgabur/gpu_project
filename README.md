@@ -3,6 +3,34 @@
 CUDA parallel program which takes 2D input array of (account x period) saving account changes and outputs 2D array of accumulated balance from previous periods (account x period) and 1D array of final sum of all changes accross all accounts per period.
 The 0 period is an initial state of saving accounts.
 
+## Current stage of development
+
+non-optimised implementation:
+
++ compilation - ok
++ porgram run - ok
++ verification - ok
+
+usage:
+
+- account_savings [-v] [-d level] [clients] [periods]
+- program input: 
+  - parameters: client and periods number
+  - flag -v: enables verification (disabled by default)
+  - flag -d x: set time debug level (0 - none, 1 - simple, 2 - detailed)
+  - flag -h: pritns usage info
+
+development stage details:
+- safe cuda api calls (via wraps)
+- safe dynamic memory management
+- unified error messages
+- non-optimised gpu kernels
+- non-optimised methods for running kernels
+- CPU solver and verifier
+- generator of random array
+- simplified Makefile
+
+
 ## System architecture
 
 Program should be able to work in two modes. Production and testing. 
