@@ -24,6 +24,9 @@ __global__ void kernel_account_balance(const int *account_changes_d, int *accoun
 
 // kernel to compute sums per period across all clients
 __global__ void kernel_sums_per_period(const int *account_balance_d, int *sums_per_period_d, int clients_num, int periods_num) {
+    extern __shared__ int sdata[];
+    int tid = threadIdx.x;
+    
     for(int period_row = blockIdx.x; period_row < periods_num; period_row += gridDim.x) {
         int sum = 0;
 
