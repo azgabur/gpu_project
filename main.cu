@@ -141,7 +141,7 @@ int main(int argc, char *argv[]) {
     set_start_time(&timer, KERNEL_1_EXEC_TIME);
 
     // First launch account balance kernel and check for errors
-    launch_account_balance_kernel(account_changes_d, account_balance_d, clients_num, periods_num);
+    launch_account_balance_and_sums_kernel(account_changes_d, account_balance_d, sums_per_period_d, clients_num, periods_num);
     CUDA_SAFE_CALL( cudaGetLastError(), KERNEL_1_EXEC_ERR_MSG );
 
     // Synchronize device before launching next kernel
@@ -150,18 +150,18 @@ int main(int argc, char *argv[]) {
     set_end_time(&timer, KERNEL_1_EXEC_TIME);
     print_elapsed_time(&timer, KERNEL_1_EXEC_TIME, OPERATION_COMPLETED_MSG);
 
-    print_entry_label(KERNEL_2_EXEC_START_MSG);
-    set_start_time(&timer, KERNEL_2_EXEC_TIME);
+    // print_entry_label(KERNEL_2_EXEC_START_MSG);
+    // set_start_time(&timer, KERNEL_2_EXEC_TIME);
 
-    // Second launch sums per period kernel and check for errors
-    launch_sums_per_period_kernel(account_balance_d, sums_per_period_d, clients_num, periods_num);
-    CUDA_SAFE_CALL( cudaGetLastError(), KERNEL_2_EXEC_ERR_MSG );
+    // // Second launch sums per period kernel and check for errors
+    // launch_sums_per_period_kernel(account_balance_d, sums_per_period_d, clients_num, periods_num);
+    // CUDA_SAFE_CALL( cudaGetLastError(), KERNEL_2_EXEC_ERR_MSG );
 
-    // Synchronize device after launching kernels
-    CUDA_SAFE_CALL( cudaDeviceSynchronize(), SYNCHRONIZE_ERR_MSG );
+    // // Synchronize device after launching kernels
+    // CUDA_SAFE_CALL( cudaDeviceSynchronize(), SYNCHRONIZE_ERR_MSG );
 
-    set_end_time(&timer, KERNEL_2_EXEC_TIME);
-    print_elapsed_time(&timer, KERNEL_2_EXEC_TIME, OPERATION_COMPLETED_MSG);
+    // set_end_time(&timer, KERNEL_2_EXEC_TIME);
+    // print_elapsed_time(&timer, KERNEL_2_EXEC_TIME, OPERATION_COMPLETED_MSG);
 
     
     /* --- --- --- --- --- --------------------- --- --- --- --- --- */
