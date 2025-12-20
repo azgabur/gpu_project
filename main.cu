@@ -105,7 +105,7 @@ int main(int argc, char *argv[]) {
 
         // Initialize host memory with generated data
         generate_saving_accounts_array(account_changes_h, clients_num, periods_num);
-        if (save_csv(TESTING_MATRIX_PATH, account_changes_h, periods_num, clients_num)) {
+        if (save_csv(TESTING_MATRIX_PATH, account_changes_h, clients_num, periods_num)) {
             fprintf(stderr, "Saving of randomly generated input matrix failed.\n");
         }
     }
@@ -217,20 +217,6 @@ int main(int argc, char *argv[]) {
     set_end_time(&timer, D2H_TRANSFER_TIME);
     print_elapsed_time(&timer, D2H_TRANSFER_TIME, OPERATION_COMPLETED_MSG);
 
-    /* --- --- --- --- --- --------------- --- --- --- --- --- */
-    /* --- --- --- --- --- OUTPUT RESULTS  --- --- --- --- --- */
-    // TODO do not hardcode output names 
-    // TODO maybe move after verification? But that broke the logic of benchmark...
-
-    print_entry_label(CSV_SAVE_START_MSG);
-    set_start_time(&timer, CSV_SAVE_TIME);
-
-    save_csv("out_balance.csv", account_balance_h, periods_num, clients_num);
-    save_csv("out_sums.csv", sums_per_period_h, 1, periods_num);
-    
-    set_end_time(&timer, CSV_SAVE_TIME);
-    print_elapsed_time(&timer, CSV_SAVE_TIME, OPERATION_COMPLETED_MSG);
-
     /* --- --- --- --- --- -------------------- --- --- --- --- --- */
     /* --- --- --- --- --- RESULTS VERIFICATION --- --- --- --- --- */
 
@@ -254,6 +240,19 @@ int main(int argc, char *argv[]) {
             : VERIFICATION_FAILURE_MSG);
 
     }
+
+    /* --- --- --- --- --- --------------- --- --- --- --- --- */
+    /* --- --- --- --- --- OUTPUT RESULTS  --- --- --- --- --- */
+    // TODO do not hardcode output names 
+
+    print_entry_label(CSV_SAVE_START_MSG);
+    set_start_time(&timer, CSV_SAVE_TIME);
+
+    save_csv("out_balance.csv", account_balance_h, periods_num, clients_num);
+    save_csv("out_sums.csv", sums_per_period_h, 1, periods_num);
+    
+    set_end_time(&timer, CSV_SAVE_TIME);
+    print_elapsed_time(&timer, CSV_SAVE_TIME, OPERATION_COMPLETED_MSG);
     
     /* --- --- --- --- --- --------------- --- --- --- --- --- */
     /* --- --- --- --- --- MEMORY CLEAN UP --- --- --- --- --- */
