@@ -24,39 +24,30 @@ __global__ void kernel_account_balance(const int *account_changes_d, int *accoun
 
 // kernel to compute sums per period across all clients
 __global__ void kernel_sums_per_period(const int *account_balance_d, int *sums_per_period_d, int clients_num, int periods_num) {
-    int period_row = blockIdx.x;
-    if (period_row >= periods_num) return;
+    for(int period_row = blockIdx.x; period_row < periods_num; period_row += gridDim.x) {
+        int sum = 0;
 
-    extern __shared__ int sdata[];
-
-    int t_id = threadIdx.x;
-    int sum = 0;
-
-    // each thread processes multiple clients
-    for (int client_col = t_id; client_col < clients_num; client_col += blockDim.x) {
-        int idx = period_row * clients_num + client_col;
-        sum += account_balance_d[idx];
-    }
-
-    sdata[t_id] = sum;
-    __syncthreads();
-
-    // parallel reduction in the shared memory
-    for (int s = blockDim.x / 2; s > 0; s >>= 1) {
-        if (t_id < s) {
-            sdata[t_id] += sdata[t_id + s];
+        for(int client_col = tid; client_col < clients_num; client_col += blockDim.x){
+            sum += account_balance_d[period_row * clients_num + client_col];
         }
+
+        sdata[tid] = sum;
+        __syncthreads();
+
+        for(int s = blockDim.x / 2; s > 0; s >>= 1) {
+            if (tid < s)
+                sdata[tid] += sdata[tid + s];
+            __syncthreads();
+        }
+
+        if (tid == 0)
+            sums_per_period_d[period_row] = sdata[0];
         __syncthreads();
     }
-
-    if (t_id == 0) {
-        sums_per_period_d[period_row] = sdata[0];
-    }
-    
 }
 
 void launch_sums_per_period_kernel(const int *account_balance_d, int *sums_per_period_d, int clients_num, int periods_num) {
-    int period_blocks_num = periods_num;
+    int period_blocks_num = min(periods_num, 1024);
     size_t shmem = BLOCK_SIZE * sizeof(int);
     kernel_sums_per_period<<<period_blocks_num, BLOCK_SIZE, shmem>>>(account_balance_d, sums_per_period_d, clients_num, periods_num);
 }
