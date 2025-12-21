@@ -19,6 +19,7 @@
 #define KERNEL_2_EXEC_START_MSG  "2nd kernel execution started...     "
 #define D2H_TRANSFER_START_MSG   "Data transfer to host started...    "
 #define VERIFICATION_START_MSG   "Results verification started...     "
+#define CSV_SAVE_START_MSG       "Saving the results to disk...       "
 
 #define OPERATION_COMPLETED_MSG  "completed in %f seconds.\n"
 #define TOTAL_EXECUTION_TIME_MSG "Total execution time:               %f seconds.\n"
@@ -31,8 +32,9 @@
 #define KERNEL_1_EXEC_TIME 3
 #define KERNEL_2_EXEC_TIME 4
 #define D2H_TRANSFER_TIME  5
-#define VERIFICATION_TIME  6
-#define TIMER_ENTRIES_NUM  7
+#define CSV_SAVE_TIME      6
+#define VERIFICATION_TIME  7
+#define TIMER_ENTRIES_NUM  8
 
 
 // External variable for time debug level
