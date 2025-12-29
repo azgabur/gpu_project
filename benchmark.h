@@ -25,6 +25,9 @@
 #define TOTAL_EXECUTION_TIME_MSG "Total execution time:               %f seconds.\n"
 
 
+// Number of rounds
+#define TEST_ROUNDS 6
+
 // Timer entries indexes
 #define PROBLEM_SETUP_TIME 0
 #define DEVICE_ALLOC_TIME  1
@@ -34,7 +37,10 @@
 #define D2H_TRANSFER_TIME  5
 #define CSV_SAVE_TIME      6
 #define VERIFICATION_TIME  7
-#define TIMER_ENTRIES_NUM  8
+
+#define CPU_PERF_TIME_START 8
+#define GPU_PERF_TIME_START CPU_PERF_TIME_START + TEST_ROUNDS
+#define TIMER_ENTRIES_NUM  8 + TEST_ROUNDS * 2
 
 
 // External variable for time debug level
@@ -42,7 +48,6 @@ extern int time_debug_level;
 
 // External variable to enable/disable results verification
 extern int enable_verification;
-
 
 // Timer structure
 typedef struct {
@@ -70,5 +75,8 @@ void print_total_time(Timer* timer, const char* msg);
 
 // print entry label based on debug level
 void print_entry_label(const char* msg);
+
+// print perofrmance information
+void print_performance_results(Timer* timer, size_t input_bytes);
 
 #endif // BENCHMARK_H

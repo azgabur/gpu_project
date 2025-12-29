@@ -3,10 +3,6 @@
 
 #include "simulation.h"
 
-// Internal function for CPU calculation of the saving accounts balances and sums per period
-void _solve_CPU(const int *account_changes, int *cpu_account_balance, int *cpu_sums_per_period, int clients_num, int periods_num);
-
-
 // TODO: Replace with actual data generation logic as needed
 void generate_saving_accounts_array(int *account_changes, int clients_num, int periods_num) {
     for (int i = 0; i < clients_num * periods_num; i++) {
@@ -29,7 +25,7 @@ int verify_results_with_CPU(const int *account_changes, const int *gpu_account_b
     }
 
     // Solve on CPU
-    _solve_CPU(account_changes, cpu_account_balance, cpu_sums_per_period, clients_num, periods_num);
+    solve_CPU(account_changes, cpu_account_balance, cpu_sums_per_period, clients_num, periods_num);
     
     // Verify results of account balance
     for (int i = 0; i < clients_num * periods_num; i++) {
@@ -56,7 +52,7 @@ int verify_results_with_CPU(const int *account_changes, const int *gpu_account_b
 }
 
 
-void _solve_CPU(const int *account_changes, int *cpu_account_balance, int *cpu_sums_per_period, int clients_num, int periods_num) {
+void solve_CPU(const int *account_changes, int *cpu_account_balance, int *cpu_sums_per_period, int clients_num, int periods_num) {
     for (int i = 0; i < clients_num; i++)
         // the first change is copied directly
         cpu_account_balance[i] = account_changes[i];
