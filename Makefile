@@ -1,3 +1,4 @@
+PHONY		= test
 NVCC        = nvcc
 NVCC_FLAGS  = -O3 -I/usr/local/cuda/include -gencode arch=compute_80,code=sm_80
 LD_FLAGS    = -lcudart -L/usr/local/cuda/lib64
@@ -18,6 +19,10 @@ kernel.o: kernel.cu kernel.h
 benchmark.o : benchmark.cu benchmark.h
 simulation.o : simulation.cu simulation.h
 csv.o : csv.cu csv.h
+
+test : all
+	./account_savings -t -v
+	./account_savings -v testing.csv
 
 clean:
 	rm -rf *.o $(EXE)

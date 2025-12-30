@@ -18,8 +18,14 @@ int main(int argc, char *argv[]) {
     // value of CPU verification of the GPU results 
     int verification_result;
 
-    // timer to be used for performance measurement
+    // timer to be used for performance measurement, set all times to 0
     Timer timer;
+    for (int i = 0; i < TIMER_ENTRIES_NUM; i++) {
+        timer.start_time[i].tv_sec = 0;
+        timer.start_time[i].tv_usec = 0;
+        timer.end_time[i].tv_sec = 0;
+        timer.end_time[i].tv_usec = 0;
+    }
 
     // Variables sizes
     size_t account_changes_size;
@@ -38,8 +44,8 @@ int main(int argc, char *argv[]) {
 
     // Default testing problem size
     bool test_generate = false;
-    int clients_num = 1000;
-    int periods_num = 1000;
+    int clients_num = 1 << 13; // 2^13 = 8192
+    int periods_num = 1 << 13;
 
     // Parse command line arguments
     int opt;
@@ -52,6 +58,7 @@ int main(int argc, char *argv[]) {
         switch (opt) {
             case 'v':
                 // enable results verification
+                // enable performance measuring
                 // enable_verification is declared in benchmark.h
                 enable_verification = 1;
                 break;
@@ -73,7 +80,7 @@ int main(int argc, char *argv[]) {
                 periods_num = atoi(optarg);
                 break;
             case 'h': case '?': default:
-                fprintf(stderr, "Usage: %s [-v] [-d level] [-c clients] [-p periods] [-t]\n", argv[0]);
+                fprintf(stderr, "Usage: %s [-v] [-d level (can be 1 or 2)] [-c clients] [-p periods] [-t]\n", argv[0]);
                 exit(EXIT_FAILURE);
         }
     }
@@ -165,35 +172,63 @@ int main(int argc, char *argv[]) {
     set_end_time(&timer, H2D_TRANSFER_TIME);
     print_elapsed_time(&timer, H2D_TRANSFER_TIME, OPERATION_COMPLETED_MSG);
 
+
+    /* --- --- --- --- --- ----------------- --- --- --- --- --- */
+    /* --- --- --- --- --- CPU PERF MEASUREMENT  --- --- --- --- */
+
+    if (enable_verification) {
+        int *account_balance_scratch = (int *) malloc(account_balance_size);
+        int *sums_per_period_scratch = (int *) malloc(sums_per_period_size);
+
+        for(int i = 0; i < TEST_ROUNDS; i++) {
+            set_start_time(&timer, CPU_PERF_TIME_START + i);
+            solve_CPU(account_changes_h, account_balance_scratch, sums_per_period_scratch, clients_num, periods_num);
+            set_end_time(&timer, CPU_PERF_TIME_START + i);
+        }
+        free(account_balance_scratch);
+        free(sums_per_period_scratch);
+    }
+
     
     /* --- --- --- --- --- ----------------- --- --- --- --- --- */
     /* --- --- --- --- --- KERNELS LUANCHING --- --- --- --- --- */
 
-    print_entry_label(KERNEL_1_EXEC_START_MSG);
-    set_start_time(&timer, KERNEL_1_EXEC_TIME);
+    int gpu_loops = 1;
+    if (enable_verification) {
+        gpu_loops = TEST_ROUNDS;
+    }
+    
+    for (int i = 0; i < gpu_loops; i++) {
+        set_start_time(&timer, GPU_PERF_TIME_START + i);
 
-    // First launch account balance kernel and check for errors
-    launch_account_balance_kernel(account_changes_d, account_balance_d, clients_num, periods_num);
-    CUDA_SAFE_CALL( cudaGetLastError(), KERNEL_1_EXEC_ERR_MSG );
+        print_entry_label(KERNEL_1_EXEC_START_MSG);
+        set_start_time(&timer, KERNEL_1_EXEC_TIME);
 
-    // Synchronize device before launching next kernel
-    CUDA_SAFE_CALL( cudaDeviceSynchronize(), SYNCHRONIZE_ERR_MSG );
+        // First launch account balance kernel and check for errors
+        launch_account_balance_kernel(account_changes_d, account_balance_d, clients_num, periods_num);
+        CUDA_SAFE_CALL( cudaGetLastError(), KERNEL_1_EXEC_ERR_MSG );
 
-    set_end_time(&timer, KERNEL_1_EXEC_TIME);
-    print_elapsed_time(&timer, KERNEL_1_EXEC_TIME, OPERATION_COMPLETED_MSG);
+        // Synchronize device before launching next kernel
+        CUDA_SAFE_CALL( cudaDeviceSynchronize(), SYNCHRONIZE_ERR_MSG );
 
-    print_entry_label(KERNEL_2_EXEC_START_MSG);
-    set_start_time(&timer, KERNEL_2_EXEC_TIME);
+        set_end_time(&timer, KERNEL_1_EXEC_TIME);
+        print_elapsed_time(&timer, KERNEL_1_EXEC_TIME, OPERATION_COMPLETED_MSG);
 
-    // Second launch sums per period kernel and check for errors
-    launch_sums_per_period_kernel(account_balance_d, sums_per_period_d, clients_num, periods_num);
-    CUDA_SAFE_CALL( cudaGetLastError(), KERNEL_2_EXEC_ERR_MSG );
+        print_entry_label(KERNEL_2_EXEC_START_MSG);
+        set_start_time(&timer, KERNEL_2_EXEC_TIME);
 
-    // Synchronize device after launching kernels
-    CUDA_SAFE_CALL( cudaDeviceSynchronize(), SYNCHRONIZE_ERR_MSG );
+        // Second launch sums per period kernel and check for errors
+        launch_sums_per_period_kernel(account_balance_d, sums_per_period_d, clients_num, periods_num);
+        CUDA_SAFE_CALL( cudaGetLastError(), KERNEL_2_EXEC_ERR_MSG );
 
-    set_end_time(&timer, KERNEL_2_EXEC_TIME);
-    print_elapsed_time(&timer, KERNEL_2_EXEC_TIME, OPERATION_COMPLETED_MSG);
+        // Synchronize device after launching kernels
+        CUDA_SAFE_CALL( cudaDeviceSynchronize(), SYNCHRONIZE_ERR_MSG );
+
+        set_end_time(&timer, KERNEL_2_EXEC_TIME);
+        print_elapsed_time(&timer, KERNEL_2_EXEC_TIME, OPERATION_COMPLETED_MSG);
+
+        set_end_time(&timer, GPU_PERF_TIME_START + i);
+    }
 
     
     /* --- --- --- --- --- --------------------- --- --- --- --- --- */
@@ -275,6 +310,9 @@ int main(int argc, char *argv[]) {
     /* --- --- --- --- --- MAIN FUNCTION RETURN --- --- --- --- --- */
 
     print_total_time(&timer, TOTAL_EXECUTION_TIME_MSG);
+    if (enable_verification) {
+        print_performance_results(&timer, account_changes_size);
+    }
 
     return EXIT_SUCCESS;
 }

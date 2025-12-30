@@ -32,17 +32,11 @@ double get_elapsed_time(Timer *timer, int time_entry) {
 }
 
 double get_total_time(Timer *timer) {
-    int last_entry_idx = TIMER_ENTRIES_NUM - 1;
-    // skip verification time if disabled
-    if (!enable_verification) last_entry_idx -= 1;
-
-    struct timeval start = timer->start_time[0];
-    struct timeval end = timer->end_time[last_entry_idx];
-    
-    double seconds = end.tv_sec - start.tv_sec;
-    double microsec = end.tv_usec - start.tv_usec;
-    
-    return seconds + (microsec * 1.0e-6);
+    double elapsed_time = 0;
+    for (int i = 0; i < TIMER_ENTRIES_NUM; i++) {
+        elapsed_time += get_elapsed_time(timer, i);
+    }
+    return elapsed_time;
 }
 
 // Internal function to print time based on debug level
@@ -70,4 +64,27 @@ void print_entry_label(const char* msg) {
     }
     // if time_debug_level == TIME_DEBUG_LEVEL_SIMPLE -> do nothing
     // if time_debug_level == TIME_DOBUG_LEVEL_NONE -> do nothing
+}
+
+void print_performance_results(Timer* timer, size_t input_bytes) {
+    double cpu_average = 0;
+    double gpu_average = 0;
+    double cpu_bytes_per_time = 0;
+    double gpu_bytes_per_time = 0;
+
+    for (int i = 0; i < TEST_ROUNDS; i++) {
+        cpu_average += get_elapsed_time(timer, CPU_PERF_TIME_START + i);
+        gpu_average += get_elapsed_time(timer, GPU_PERF_TIME_START + i);
+    }
+    cpu_average = cpu_average / TEST_ROUNDS;
+    gpu_average = gpu_average / TEST_ROUNDS;
+
+    cpu_bytes_per_time = input_bytes / cpu_average;
+    gpu_bytes_per_time = input_bytes / gpu_average;
+
+    printf("\n------ Performance ------ (over %d rounds and %lu megabytes)\n", TEST_ROUNDS, input_bytes / (1024*1024));
+    printf("The average cpu computation time is: %fms\n", cpu_average * 1e3);
+    printf("The megabytes per second calculation speed for cpu is: %f\n", cpu_bytes_per_time / (1024*1024));
+    printf("The average GPU computation time is: %fms\n", gpu_average * 1e3);
+    printf("The megabytes per second calculation speed for GPU is: %f\n", gpu_bytes_per_time / (1024*1024));
 }

@@ -23,5 +23,8 @@ void generate_saving_accounts_array(int *saving_accounts, int clients_num, int p
 int verify_results_with_CPU(const int *account_changes, const int *gpu_account_balance, 
     const int *gpu_sums_per_period, int clients_num, int periods_num);
 
+// CPU algorithm for solving the problem
+void solve_CPU(const int *account_changes, int *cpu_account_balance, int *cpu_sums_per_period, int clients_num, int periods_num);
+
 
 #endif // SIMULATION_H
