@@ -3,12 +3,7 @@
 
 #include "kernel.h"
 
-// ============================================================
-// Kernel 1 (ON GARDE L’ORIGINAL — déjà optimal)
-// Each thread = 1 client
-// Sequential scan over periods (excellent for GPU)
-// ============================================================
-
+// Same one
 __global__ void kernel_account_balance(
     const int * __restrict__ account_changes_d,
     int * __restrict__ account_balance_d,
@@ -29,10 +24,7 @@ __global__ void kernel_account_balance(
     }
 }
 
-// ============================================================
-// Kernel 2 (OPTIMISÉ) — reduction par période
-// Warp-level primitives, très peu de synchronisations
-// ============================================================
+// Experimental optimised kernel (fail)
 
 __global__ void kernel_sums_per_period_fast(
     const int * __restrict__ account_balance_d,
