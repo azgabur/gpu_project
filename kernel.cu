@@ -25,8 +25,9 @@ __global__ void kernel_account_balance(const int *account_changes_d, int *accoun
     for (int period_row = 1; period_row < periods_num; period_row++) {
         int entry_idx = period_row * clients_num + client_col;
         balance += account_changes_d[entry_idx];
-        account_balance_d[entry_idx] = balance;
     }
+    // Single global write
+    final_account_balance_d[client_col] = balance;
 }
 
 // kernel to compute sums per period across all clients
