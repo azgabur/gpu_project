@@ -141,7 +141,7 @@ int main(int argc, char *argv[]) {
     set_start_time(&timer, KERNEL_1_EXEC_TIME);
 
     // First launch account balance kernel and check for errors
-    kernel_account_balance(account_changes_d, account_balance_d, clients_num, periods_num);
+    launch_account_balance_kernel(account_changes_d, account_balance_d, clients_num, periods_num);
     CUDA_SAFE_CALL( cudaGetLastError(), KERNEL_1_EXEC_ERR_MSG );
 
     // Synchronize device before launching next kernel
