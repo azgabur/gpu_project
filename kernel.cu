@@ -19,7 +19,8 @@ __global__ void kernel_account_balance(const int *account_changes_d, int *accoun
     if (client_col >= clients_num) return;
 
     // the first change is copied directly
-    account_balance_d[client_col] = account_changes_d[client_col]; 
+    int balance = account_changes_d[client_col];
+    account_balance_d[client_col] = balance;
 
     for (int period_row = 1; period_row < periods_num; period_row++) {
         int entry_idx = period_row * clients_num + client_col;
