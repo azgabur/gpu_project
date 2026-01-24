@@ -1,3 +1,5 @@
+Anouk Batard, Emma Guiguemdé, Bartosz Mierzwa, Alexander Zgabur
+
 # Gpu accelerated savings account
 
 CUDA parallel program which takes 2D input array of (account x period) saving account changes and outputs 2D array of accumulated balance from previous periods (account x period) and 1D array of final sum of all changes accross all accounts per period.
