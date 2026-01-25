@@ -68,23 +68,34 @@ void print_entry_label(const char* msg) {
 
 void print_performance_results(Timer* timer, size_t input_bytes) {
     double cpu_average = 0;
-    double gpu_average = 0;
+    double gpu_k1_average = 0;
+    double gpu_k2_average = 0;
+    // double gpu_k3_average = 0;
     double cpu_bytes_per_time = 0;
-    double gpu_bytes_per_time = 0;
+    double gpu_k1_bytes_per_time = 0;
+    double gpu_k2_bytes_per_time = 0;
 
     for (int i = 0; i < TEST_ROUNDS; i++) {
-        cpu_average += get_elapsed_time(timer, CPU_PERF_TIME_START + i);
-        gpu_average += get_elapsed_time(timer, GPU_PERF_TIME_START + i);
+        cpu_average += get_elapsed_time(timer, CPU_PERF_TIME + i);
+        gpu_k1_average += get_elapsed_time(timer, GPU_K1_PERF_TIME + i);
+        gpu_k2_average += get_elapsed_time(timer, GPU_K2_PERF_TIME + i);
+        // gpu_k3_average += get_elapsed_time(timer, GPU_K3_PERF_TIME + i);
     }
-    cpu_average = cpu_average / TEST_ROUNDS;
-    gpu_average = gpu_average / TEST_ROUNDS;
+    cpu_average /= TEST_ROUNDS;
+    gpu_k1_average /= TEST_ROUNDS;
+    gpu_k2_average /= TEST_ROUNDS;
+    // gpu_k3_average /= TEST_ROUNDS;
 
     cpu_bytes_per_time = input_bytes / cpu_average;
-    gpu_bytes_per_time = input_bytes / gpu_average;
+    gpu_k1_bytes_per_time = input_bytes / gpu_k1_average;
+    gpu_k2_bytes_per_time = input_bytes / gpu_k2_average;
 
     printf("\n------ Performance ------ (over %d rounds and %lu megabytes)\n", TEST_ROUNDS, input_bytes / (1024*1024));
     printf("The average cpu computation time is: %fms\n", cpu_average * 1e3);
     printf("The megabytes per second calculation speed for cpu is: %f\n", cpu_bytes_per_time / (1024*1024));
-    printf("The average GPU computation time is: %fms\n", gpu_average * 1e3);
-    printf("The megabytes per second calculation speed for GPU is: %f\n", gpu_bytes_per_time / (1024*1024));
+    printf("The average GPU computation time of 1nd kernel is: %fms\n", gpu_k1_average * 1e3);
+    printf("The average GPU computation time of 2nd kernel is: %fms\n", gpu_k2_average * 1e3);
+    // printf("The average GPU computation time of 3nd kernel is: %fms\n", gpu_k3_average * 1e3);
+    printf("The calculation speed for GPU kernel 1 is: %f MB/s\n", gpu_k1_bytes_per_time / (1024*1024));
+    printf("The calculation speed for GPU kernel 2 is: %f MB/s\n", gpu_k2_bytes_per_time / (1024*1024));
 }

@@ -20,6 +20,7 @@
 #define D2H_TRANSFER_ERR_MSG  "Unable to copy data from device to host\n"
 #define KERNEL_1_EXEC_ERR_MSG "Unable to launch 1st kernel\n"
 #define KERNEL_2_EXEC_ERR_MSG "Unable to launch 2nd kernel\n"
+#define KERNEL_3_EXEC_ERR_MSG "Unable to launch 3rd kernel\n"
 #define SYNCHRONIZE_ERR_MSG   "Unable to synchronize device\n"
 
 

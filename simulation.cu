@@ -4,16 +4,24 @@
 #include "simulation.h"
 
 // TODO: Replace with actual data generation logic as needed
-void generate_saving_accounts_array(int *account_changes, int clients_num, int periods_num) {
-    for (int i = 0; i < clients_num * periods_num; i++) {
+void generate_saving_accounts_array(
+    int *account_changes, 
+    size_t clients_num, 
+    size_t periods_num
+) {
+    for (size_t i = 0; i < clients_num * periods_num; i++) {
         // Basic implementation: random integers between -10000 and 10000
         account_changes[i] = rand() % 20000 - 10000;
     }
 }
 
 // TODO: Implement actual verification logic
-int verify_results_with_CPU(const int *account_changes, const int *gpu_account_balance, 
-    const int *gpu_sums_per_period, int clients_num, int periods_num) {
+int verify_results_with_CPU(
+    const int *account_changes, 
+    const int *gpu_account_balance, 
+    const int *gpu_sums_per_period, 
+    size_t clients_num, 
+    size_t periods_num) {
     
     // Allocate memory for CPU results
     int *cpu_account_balance = (int *) malloc(sizeof(int) * (size_t) clients_num * (size_t) periods_num);
@@ -28,7 +36,7 @@ int verify_results_with_CPU(const int *account_changes, const int *gpu_account_b
     solve_CPU(account_changes, cpu_account_balance, cpu_sums_per_period, clients_num, periods_num);
     
     // Verify results of account balance
-    for (int i = 0; i < clients_num * periods_num; i++) {
+    for (size_t i = 0; i < clients_num * periods_num; i++) {
         if (cpu_account_balance[i] != gpu_account_balance[i]) {
             free(cpu_account_balance);
             free(cpu_sums_per_period);
@@ -37,7 +45,7 @@ int verify_results_with_CPU(const int *account_changes, const int *gpu_account_b
     }
 
     // Verify results of sums per period
-    for (int i = 0; i < periods_num; i++) {
+    for (size_t i = 0; i < periods_num; i++) {
         if (cpu_sums_per_period[i] != gpu_sums_per_period[i]) {
             free(cpu_account_balance);
             free(cpu_sums_per_period);
@@ -52,20 +60,26 @@ int verify_results_with_CPU(const int *account_changes, const int *gpu_account_b
 }
 
 
-void solve_CPU(const int *account_changes, int *cpu_account_balance, int *cpu_sums_per_period, int clients_num, int periods_num) {
-    for (int i = 0; i < clients_num; i++)
+void solve_CPU(
+    const int *account_changes, 
+    int *cpu_account_balance, 
+    int *cpu_sums_per_period, 
+    size_t clients_num, 
+    size_t periods_num
+) {
+    for (size_t i = 0; i < clients_num; i++)
         // the first change is copied directly
         cpu_account_balance[i] = account_changes[i];
-    for (int j = 1; j < periods_num; j++) {
-        for (int i = 0; i < clients_num; i++) {
+    for (size_t j = 1; j < periods_num; j++) {
+        for (size_t i = 0; i < clients_num; i++) {
             cpu_account_balance[j*clients_num + i] = cpu_account_balance[(j-1)*clients_num + i] 
                 + account_changes[j*clients_num + i];
         }
     }
 
-    for (int j = 0; j < periods_num; j++) {
+    for (size_t j = 0; j < periods_num; j++) {
         int s = 0;
-        for (int i = 0; i < clients_num; i++) {
+        for (size_t i = 0; i < clients_num; i++) {
             s += cpu_account_balance[j*clients_num + i];
         }
         cpu_sums_per_period[j] = s;

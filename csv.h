@@ -18,8 +18,8 @@ int load_csv(
     int** account_changes_h, 
     int** account_balance_h, 
     int** sums_per_period_h,
-    int* clients_num,
-    int* periods_num
+    size_t* clients_num,
+    size_t* periods_num
 );
 
 

@@ -17,6 +17,7 @@
 #define H2D_TRANSFER_START_MSG   "Data transfer to device started...  "
 #define KERNEL_1_EXEC_START_MSG  "1st kernel execution started...     "
 #define KERNEL_2_EXEC_START_MSG  "2nd kernel execution started...     "
+#define KERNEL_3_EXEC_START_MSG  "3rd kernel execution started...     "
 #define D2H_TRANSFER_START_MSG   "Data transfer to host started...    "
 #define VERIFICATION_START_MSG   "Results verification started...     "
 #define CSV_SAVE_START_MSG       "Saving the results to disk...       "
@@ -26,7 +27,7 @@
 
 
 // Number of rounds
-#define TEST_ROUNDS 6
+#define TEST_ROUNDS 1
 
 // Timer entries indexes
 #define PROBLEM_SETUP_TIME 0
@@ -38,9 +39,11 @@
 #define CSV_SAVE_TIME      6
 #define VERIFICATION_TIME  7
 
-#define CPU_PERF_TIME_START 8
-#define GPU_PERF_TIME_START CPU_PERF_TIME_START + TEST_ROUNDS
-#define TIMER_ENTRIES_NUM  8 + TEST_ROUNDS * 2
+#define CPU_PERF_TIME 8
+#define GPU_K1_PERF_TIME CPU_PERF_TIME + TEST_ROUNDS
+#define GPU_K2_PERF_TIME CPU_PERF_TIME + TEST_ROUNDS * 2
+#define GPU_K3_PERF_TIME CPU_PERF_TIME + TEST_ROUNDS * 3
+#define TIMER_ENTRIES_NUM  8 + TEST_ROUNDS * 3 // no kernel 3
 
 
 // External variable for time debug level

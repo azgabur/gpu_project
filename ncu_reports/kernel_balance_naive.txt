@@ -1,0 +1,65 @@
+[3493813] account_savings@127.0.0.1
+  kernel_account_balance_naive(const int *, int *, unsigned long, unsigned long), 2026-Jan-25 03:13:54, Context 1, Stream 7
+    Warning: Data collection happened without fixed GPU frequencies. Profiling results may be inconsistent.
+    Section: GPU Speed Of Light Throughput
+    ---------------------------------------------------------------------- --------------- ------------------------------
+    DRAM Frequency                                                           cycle/nsecond                           1.21
+    SM Frequency                                                             cycle/nsecond                           1.41
+    Elapsed Cycles                                                                   cycle                      7,363,627
+    Memory [%]                                                                           %                          52.64
+    DRAM Throughput                                                                      %                          52.64
+    Duration                                                                       msecond                           5.24
+    L1/TEX Cache Throughput                                                              %                          10.49
+    L2 Cache Throughput                                                                  %                          14.83
+    SM Active Cycles                                                                 cycle                   7,107,844.14
+    Compute (SM) [%]                                                                     %                           5.09
+    ---------------------------------------------------------------------- --------------- ------------------------------
+    WRN   This kernel grid is too small to fill the available resources on this device, resulting in only 0.3 full      
+          waves across all SMs. Look at Launch Statistics for more details.                                             
+
+    INF   The ratio of peak float (fp32) to double (fp64) performance on this device is 2:1. The kernel achieved 0% of  
+          this device's fp32 peak performance and 0% of its fp64 peak performance. See the Kernel Profiling Guide       
+          (https://docs.nvidia.com/nsight-compute/ProfilingGuide/index.html#roofline) for mode details on roofline      
+          analysis.                                                                                                     
+
+    Section: Compute Workload Analysis
+    ---------------------------------------------------------------------- --------------- ------------------------------
+    Executed Ipc Active                                                         inst/cycle                           0.21
+    Executed Ipc Elapsed                                                        inst/cycle                           0.20
+    Issue Slots Busy                                                                     %                           5.27
+    Issued Ipc Active                                                           inst/cycle                           0.21
+    SM Busy                                                                              %                           5.27
+    ---------------------------------------------------------------------- --------------- ------------------------------
+    WRN   All pipelines are under-utilized. Either this kernel is very small or it doesn't issue enough warps per       
+          scheduler. Check the Launch Statistics and Scheduler Statistics sections for further details.                 
+
+    Section: Memory Workload Analysis
+    ---------------------------------------------------------------------- --------------- ------------------------------
+    Memory Throughput                                                         Gbyte/second                         102.08
+    Mem Busy                                                                             %                          11.90
+    Max Bandwidth                                                                        %                          52.64
+    L1/TEX Hit Rate                                                                      %                          11.12
+    L2 Compression Success Rate                                                          %                              0
+    L2 Compression Ratio                                                                                                0
+    L2 Hit Rate                                                                          %                          50.00
+    Mem Pipes Busy                                                                       %                           4.58
+    ---------------------------------------------------------------------- --------------- ------------------------------
+
+    Section: Occupancy
+    ---------------------------------------------------------------------- --------------- ------------------------------
+    Block Limit SM                                                                   block                             32
+    Block Limit Registers                                                            block                              8
+    Block Limit Shared Mem                                                           block                            164
+    Block Limit Warps                                                                block                              8
+    Theoretical Active Warps per SM                                                   warp                             64
+    Theoretical Occupancy                                                                %                            100
+    Achieved Occupancy                                                                   %                          28.45
+    Achieved Active Warps Per SM                                                      warp                          18.21
+    ---------------------------------------------------------------------- --------------- ------------------------------
+    WRN   This kernel's theoretical occupancy is not impacted by any block limit. The difference between calculated     
+          theoretical (100.0%) and measured achieved occupancy (28.5%) can be the result of warp scheduling overheads   
+          or workload imbalances during the kernel execution. Load imbalances can occur between warps within a block    
+          as well as across blocks of the same kernel. See the CUDA Best Practices Guide                                
+          (https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html#occupancy) for more details on           
+          optimizing occupancy.                                                                                         
+

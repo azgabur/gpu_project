@@ -44,18 +44,31 @@ int main(int argc, char *argv[]) {
 
     // Default testing problem size
     bool test_generate = false;
-    int clients_num = 1 << 13; // 2^13 = 8192
-    int periods_num = 1 << 13;
+    bool save_output_file = false;
+    bool launch_naive_kernels = false;
+    // 2^13 = 8192;   2^13^2 = ~67   mln  (256 MiB)
+    // 2^14 = 16384;  2^14^2 = ~268  mln  (1.0 GiB) 
+    // 25000;        25000^2 = ~2.5  mld  (2.33 GiB)
+    size_t clients_num = 1 << 13;
+    size_t periods_num = 1 << 13;
 
     // Parse command line arguments
     int opt;
     static struct option long_options[] = {
+        {"run-naive-kernels", no_argument, 0, 'n'},
+        {"save-file", no_argument, 0, 's'},
         {"test-input",  no_argument, 0, 't'},
         {"test-clients-num", required_argument, 0, 'c'},
         {"test-periods-num", required_argument, 0, 'p'},
     };
-    while ((opt = getopt_long(argc, argv, "vd:tc:p:h?", long_options, NULL)) != -1) {
+    while ((opt = getopt_long(argc, argv, "nsvd:tc:p:h?", long_options, NULL)) != -1) {
         switch (opt) {
+            case 'n':
+                // launches naive instead of optimalized kernels
+                launch_naive_kernels = true;
+            case 's':
+                // save output csv file (disabled by default)
+                save_output_file = true;
             case 'v':
                 // enable results verification
                 // enable performance measuring
@@ -73,14 +86,14 @@ int main(int argc, char *argv[]) {
                 break;
             case 'c':
                 // Sets custom clients number for random generation
-                clients_num = atoi(optarg);
+                clients_num = atol(optarg);
                 break;
             case 'p':
                 // Sets custom periods number for random generation
-                periods_num = atoi(optarg);
+                periods_num = atol(optarg);
                 break;
             case 'h': case '?': default:
-                fprintf(stderr, "Usage: %s [-v] [-d level (can be 1 or 2)] [-c clients] [-p periods] [-t]\n", argv[0]);
+                fprintf(stderr, "Usage: %s [-n] [-s] [-v] [-d level (can be 1 or 2)] [-c clients] [-p periods] [-t]\n", argv[0]);
                 exit(EXIT_FAILURE);
         }
     }
@@ -181,9 +194,15 @@ int main(int argc, char *argv[]) {
         int *sums_per_period_scratch = (int *) malloc(sums_per_period_size);
 
         for(int i = 0; i < TEST_ROUNDS; i++) {
-            set_start_time(&timer, CPU_PERF_TIME_START + i);
-            solve_CPU(account_changes_h, account_balance_scratch, sums_per_period_scratch, clients_num, periods_num);
-            set_end_time(&timer, CPU_PERF_TIME_START + i);
+            set_start_time(&timer, CPU_PERF_TIME + i);
+            solve_CPU(
+                account_changes_h, 
+                account_balance_scratch, 
+                sums_per_period_scratch, 
+                clients_num, 
+                periods_num
+            );
+            set_end_time(&timer, CPU_PERF_TIME + i);
         }
         free(account_balance_scratch);
         free(sums_per_period_scratch);
@@ -199,34 +218,72 @@ int main(int argc, char *argv[]) {
     }
     
     for (int i = 0; i < gpu_loops; i++) {
-        set_start_time(&timer, GPU_PERF_TIME_START + i);
-
+        set_start_time(&timer, GPU_K1_PERF_TIME + i);
         print_entry_label(KERNEL_1_EXEC_START_MSG);
-        set_start_time(&timer, KERNEL_1_EXEC_TIME);
 
-    // First launch account balance kernel and check for errors
-    launch_account_balance_kernel(account_changes_d, account_balance_d, clients_num, periods_num);
-    CUDA_SAFE_CALL( cudaGetLastError(), KERNEL_1_EXEC_ERR_MSG );
+        // set_start_time(&timer, KERNEL_1_EXEC_TIME);
+
+        // First launch account balance kernel and check for errors
+        if (launch_naive_kernels) {
+            launch_account_balance_kernel_naive (
+                account_changes_d, 
+                account_balance_d, 
+                clients_num, 
+                periods_num
+            );
+        } else {
+            launch_account_balance_kernel_optimalized (
+                account_changes_d, 
+                account_balance_d, 
+                clients_num, 
+                periods_num
+            );
+        }
+        CUDA_SAFE_CALL( cudaGetLastError(), KERNEL_1_EXEC_ERR_MSG );
 
         // Synchronize device before launching next kernel
         CUDA_SAFE_CALL( cudaDeviceSynchronize(), SYNCHRONIZE_ERR_MSG );
 
-        set_end_time(&timer, KERNEL_1_EXEC_TIME);
-        print_elapsed_time(&timer, KERNEL_1_EXEC_TIME, OPERATION_COMPLETED_MSG);
+        set_end_time(&timer, GPU_K1_PERF_TIME + i);
+        print_elapsed_time(&timer, GPU_K1_PERF_TIME + i, OPERATION_COMPLETED_MSG);
 
-    print_entry_label(KERNEL_2_EXEC_START_MSG);
-    set_start_time(&timer, KERNEL_2_EXEC_TIME);
+        // set_end_time(&timer, KERNEL_1_EXEC_TIME);
+        // print_elapsed_time(&timer, KERNEL_1_EXEC_TIME, OPERATION_COMPLETED_MSG);
 
-    // Second launch sums per period kernel and check for errors
-    launch_sums_per_period_kernel(account_balance_d, sums_per_period_d, clients_num, periods_num);
-    CUDA_SAFE_CALL( cudaGetLastError(), KERNEL_2_EXEC_ERR_MSG );
+        // print_entry_label(KERNEL_2_EXEC_START_MSG);
+        // set_start_time(&timer, KERNEL_2_EXEC_TIME);
 
-    // Synchronize device after launching kernels
-    CUDA_SAFE_CALL( cudaDeviceSynchronize(), SYNCHRONIZE_ERR_MSG );
+        set_start_time(&timer, GPU_K2_PERF_TIME + i);
+        print_entry_label(KERNEL_2_EXEC_START_MSG);
 
-    set_end_time(&timer, KERNEL_2_EXEC_TIME);
-    print_elapsed_time(&timer, KERNEL_2_EXEC_TIME, OPERATION_COMPLETED_MSG);
+        // Second launch sums per period kernel and check for errors
+        if (launch_naive_kernels) {
+            launch_sums_per_period_kernel_naive (
+                account_balance_d, 
+                sums_per_period_d, 
+                clients_num, 
+                periods_num
+            );
+        } else {
+            launch_sums_per_period_kernel_optimalized (
+                account_balance_d, 
+                sums_per_period_d, 
+                clients_num, 
+                periods_num
+            );
+        }
+        CUDA_SAFE_CALL( cudaGetLastError(), KERNEL_2_EXEC_ERR_MSG );
 
+        // Synchronize device after launching kernels
+        CUDA_SAFE_CALL( cudaDeviceSynchronize(), SYNCHRONIZE_ERR_MSG );
+
+        set_end_time(&timer, GPU_K2_PERF_TIME + i);
+        print_elapsed_time(&timer, GPU_K2_PERF_TIME + i, OPERATION_COMPLETED_MSG);
+
+        // set_end_time(&timer, KERNEL_2_EXEC_TIME);
+        // print_elapsed_time(&timer, KERNEL_2_EXEC_TIME, OPERATION_COMPLETED_MSG);
+
+    }
     
     /* --- --- --- --- --- --------------------- --- --- --- --- --- */
     /* --- --- --- --- --- DATA TRANSFER TO HOST --- --- --- --- --- */
@@ -280,12 +337,17 @@ int main(int argc, char *argv[]) {
     print_entry_label(CSV_SAVE_START_MSG);
     set_start_time(&timer, CSV_SAVE_TIME);
 
-    save_csv("out_balance.csv", account_balance_h, periods_num, clients_num);
-    save_csv("out_sums.csv", sums_per_period_h, 1, periods_num);
-    
+    if (save_output_file) {
+
+        save_csv("out_balance.csv", account_balance_h, periods_num, clients_num);
+        save_csv("out_sums.csv", sums_per_period_h, 1, periods_num);
+        
+    }
+
     set_end_time(&timer, CSV_SAVE_TIME);
     print_elapsed_time(&timer, CSV_SAVE_TIME, OPERATION_COMPLETED_MSG);
-    
+
+
     /* --- --- --- --- --- --------------- --- --- --- --- --- */
     /* --- --- --- --- --- MEMORY CLEAN UP --- --- --- --- --- */
 

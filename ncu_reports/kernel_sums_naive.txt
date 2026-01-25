@@ -1,0 +1,67 @@
+[3494212] account_savings@127.0.0.1
+  kernel_sums_per_period_naive(const int *, int *, unsigned long, unsigned long), 2026-Jan-25 03:14:06, Context 1, Stream 7
+    Warning: Data collection happened without fixed GPU frequencies. Profiling results may be inconsistent.
+    Section: GPU Speed Of Light Throughput
+    ---------------------------------------------------------------------- --------------- ------------------------------
+    DRAM Frequency                                                           cycle/nsecond                           1.22
+    SM Frequency                                                             cycle/nsecond                           1.41
+    Elapsed Cycles                                                                   cycle                      6,346,994
+    Memory [%]                                                                           %                          75.53
+    DRAM Throughput                                                                      %                          30.68
+    Duration                                                                       msecond                           4.50
+    L1/TEX Cache Throughput                                                              %                          99.49
+    L2 Cache Throughput                                                                  %                          14.48
+    SM Active Cycles                                                                 cycle                   4,818,209.43
+    Compute (SM) [%]                                                                     %                           2.51
+    ---------------------------------------------------------------------- --------------- ------------------------------
+    WRN   Memory is more heavily utilized than Compute: Look at the Memory Workload Analysis report section to see      
+          where the memory system bottleneck is. Check memory replay (coalescing) metrics to make sure you're           
+          efficiently utilizing the bytes transferred. Also consider whether it is possible to do more work per memory  
+          access (kernel fusion) or whether there are values you can (re)compute.                                       
+
+    INF   The ratio of peak float (fp32) to double (fp64) performance on this device is 2:1. The kernel achieved 0% of  
+          this device's fp32 peak performance and 0% of its fp64 peak performance. See the Kernel Profiling Guide       
+          (https://docs.nvidia.com/nsight-compute/ProfilingGuide/index.html#roofline) for mode details on roofline      
+          analysis.                                                                                                     
+
+    Section: Compute Workload Analysis
+    ---------------------------------------------------------------------- --------------- ------------------------------
+    Executed Ipc Active                                                         inst/cycle                           0.13
+    Executed Ipc Elapsed                                                        inst/cycle                           0.10
+    Issue Slots Busy                                                                     %                           3.31
+    Issued Ipc Active                                                           inst/cycle                           0.13
+    SM Busy                                                                              %                           3.31
+    ---------------------------------------------------------------------- --------------- ------------------------------
+    WRN   All pipelines are under-utilized. Either this kernel is very small or it doesn't issue enough warps per       
+          scheduler. Check the Launch Statistics and Scheduler Statistics sections for further details.                 
+
+    Section: Memory Workload Analysis
+    ---------------------------------------------------------------------- --------------- ------------------------------
+    Memory Throughput                                                         Gbyte/second                          59.66
+    Mem Busy                                                                             %                          75.53
+    Max Bandwidth                                                                        %                          30.68
+    L1/TEX Hit Rate                                                                      %                          86.88
+    L2 Compression Success Rate                                                          %                              0
+    L2 Compression Ratio                                                                                                0
+    L2 Hit Rate                                                                          %                          49.64
+    Mem Pipes Busy                                                                       %                           2.36
+    ---------------------------------------------------------------------- --------------- ------------------------------
+
+    Section: Occupancy
+    ---------------------------------------------------------------------- --------------- ------------------------------
+    Block Limit SM                                                                   block                             32
+    Block Limit Registers                                                            block                             10
+    Block Limit Shared Mem                                                           block                            164
+    Block Limit Warps                                                                block                              8
+    Theoretical Active Warps per SM                                                   warp                             64
+    Theoretical Occupancy                                                                %                            100
+    Achieved Occupancy                                                                   %                          29.53
+    Achieved Active Warps Per SM                                                      warp                          18.90
+    ---------------------------------------------------------------------- --------------- ------------------------------
+    WRN   This kernel's theoretical occupancy is not impacted by any block limit. The difference between calculated     
+          theoretical (100.0%) and measured achieved occupancy (29.5%) can be the result of warp scheduling overheads   
+          or workload imbalances during the kernel execution. Load imbalances can occur between warps within a block    
+          as well as across blocks of the same kernel. See the CUDA Best Practices Guide                                
+          (https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html#occupancy) for more details on           
+          optimizing occupancy.                                                                                         
+
