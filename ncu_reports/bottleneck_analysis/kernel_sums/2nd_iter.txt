@@ -1,18 +1,18 @@
-[385223] account_savings@127.0.0.1
-  void kernel_sums_per_period_optimalized<(unsigned long)256>(const int *, int *, unsigned long, unsigned long), 2026-Jan-27 16:11:57, Context 1, Stream 7
+[281011] account_savings@127.0.0.1
+  void kernel_sums_per_period_optimalized<(unsigned long)256>(const int *, int *, unsigned long, unsigned long), 2026-Jan-27 15:46:55, Context 1, Stream 7
     Warning: Data collection happened without fixed GPU frequencies. Profiling results may be inconsistent.
     Section: GPU Speed Of Light Throughput
     ---------------------------------------------------------------------- --------------- ------------------------------
-    DRAM Frequency                                                           cycle/nsecond                           1.21
+    DRAM Frequency                                                           cycle/nsecond                           1.22
     SM Frequency                                                             cycle/nsecond                           1.41
-    Elapsed Cycles                                                                   cycle                      2,039,677
-    Memory [%]                                                                           %                          95.47
-    DRAM Throughput                                                                      %                          95.47
+    Elapsed Cycles                                                                   cycle                      2,042,690
+    Memory [%]                                                                           %                          95.33
+    DRAM Throughput                                                                      %                          95.33
     Duration                                                                       msecond                           1.45
-    L1/TEX Cache Throughput                                                              %                          15.11
-    L2 Cache Throughput                                                                  %                          42.95
-    SM Active Cycles                                                                 cycle                   2,040,527.29
-    Compute (SM) [%]                                                                     %                          14.29
+    L1/TEX Cache Throughput                                                              %                          15.10
+    L2 Cache Throughput                                                                  %                          42.89
+    SM Active Cycles                                                                 cycle                   2,041,314.79
+    Compute (SM) [%]                                                                     %                          14.27
     ---------------------------------------------------------------------- --------------- ------------------------------
     INF   The kernel is utilizing greater than 80.0% of the available compute or memory performance of the device. To   
           further improve performance, work will likely need to be shifted from the most utilized to another unit.      
@@ -27,23 +27,23 @@
     ---------------------------------------------------------------------- --------------- ------------------------------
     Executed Ipc Active                                                         inst/cycle                           0.56
     Executed Ipc Elapsed                                                        inst/cycle                           0.56
-    Issue Slots Busy                                                                     %                          13.92
+    Issue Slots Busy                                                                     %                          13.91
     Issued Ipc Active                                                           inst/cycle                           0.56
-    SM Busy                                                                              %                          13.92
+    SM Busy                                                                              %                          13.91
     ---------------------------------------------------------------------- --------------- ------------------------------
     WRN   All pipelines are under-utilized. Either this kernel is very small or it doesn't issue enough warps per       
           scheduler. Check the Launch Statistics and Scheduler Statistics sections for further details.                 
 
     Section: Memory Workload Analysis
     ---------------------------------------------------------------------- --------------- ------------------------------
-    Memory Throughput                                                         Gbyte/second                         185.48
-    Mem Busy                                                                             %                          21.50
-    Max Bandwidth                                                                        %                          95.47
+    Memory Throughput                                                         Gbyte/second                         185.45
+    Mem Busy                                                                             %                          21.47
+    Max Bandwidth                                                                        %                          95.33
     L1/TEX Hit Rate                                                                      %                           0.06
     L2 Compression Success Rate                                                          %                              0
     L2 Compression Ratio                                                                                                0
-    L2 Hit Rate                                                                          %                           0.11
-    Mem Pipes Busy                                                                       %                          14.29
+    L2 Hit Rate                                                                          %                           0.10
+    Mem Pipes Busy                                                                       %                          14.27
     ---------------------------------------------------------------------- --------------- ------------------------------
 
     Section: Occupancy
@@ -54,8 +54,8 @@
     Block Limit Warps                                                                block                              8
     Theoretical Active Warps per SM                                                   warp                             64
     Theoretical Occupancy                                                                %                            100
-    Achieved Occupancy                                                                   %                          98.88
-    Achieved Active Warps Per SM                                                      warp                          63.28
+    Achieved Occupancy                                                                   %                          98.84
+    Achieved Active Warps Per SM                                                      warp                          63.26
     ---------------------------------------------------------------------- --------------- ------------------------------
     INF   This kernel's theoretical occupancy is not impacted by any block limit.                                       
 

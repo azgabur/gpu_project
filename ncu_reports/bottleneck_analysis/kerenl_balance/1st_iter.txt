@@ -1,18 +1,18 @@
-[382095] account_savings@127.0.0.1
-  kernel_account_balance_naive(const int *, int *, unsigned long, unsigned long), 2026-Jan-27 16:11:06, Context 1, Stream 7
+[19346] account_savings@127.0.0.1
+  kernel_account_balance_naive(const int *, int *, unsigned long, unsigned long), 2026-Jan-27 12:26:06, Context 1, Stream 7
     Warning: Data collection happened without fixed GPU frequencies. Profiling results may be inconsistent.
     Section: GPU Speed Of Light Throughput
     ---------------------------------------------------------------------- --------------- ------------------------------
     DRAM Frequency                                                           cycle/nsecond                           1.21
     SM Frequency                                                             cycle/nsecond                           1.41
-    Elapsed Cycles                                                                   cycle                      7,391,617
-    Memory [%]                                                                           %                          52.45
-    DRAM Throughput                                                                      %                          52.45
-    Duration                                                                       msecond                           5.25
-    L1/TEX Cache Throughput                                                              %                          10.45
-    L2 Cache Throughput                                                                  %                          14.77
-    SM Active Cycles                                                                 cycle                   7,141,241.21
-    Compute (SM) [%]                                                                     %                           5.07
+    Elapsed Cycles                                                                   cycle                      7,420,437
+    Memory [%]                                                                           %                          52.25
+    DRAM Throughput                                                                      %                          52.25
+    Duration                                                                       msecond                           5.27
+    L1/TEX Cache Throughput                                                              %                          10.42
+    L2 Cache Throughput                                                                  %                          17.66
+    SM Active Cycles                                                                 cycle                   7,160,507.93
+    Compute (SM) [%]                                                                     %                           5.05
     ---------------------------------------------------------------------- --------------- ------------------------------
     WRN   This kernel grid is too small to fill the available resources on this device, resulting in only 0.3 full      
           waves across all SMs. Look at Launch Statistics for more details.                                             
@@ -26,23 +26,23 @@
     ---------------------------------------------------------------------- --------------- ------------------------------
     Executed Ipc Active                                                         inst/cycle                           0.21
     Executed Ipc Elapsed                                                        inst/cycle                           0.20
-    Issue Slots Busy                                                                     %                           5.25
+    Issue Slots Busy                                                                     %                           5.24
     Issued Ipc Active                                                           inst/cycle                           0.21
-    SM Busy                                                                              %                           5.25
+    SM Busy                                                                              %                           5.24
     ---------------------------------------------------------------------- --------------- ------------------------------
     WRN   All pipelines are under-utilized. Either this kernel is very small or it doesn't issue enough warps per       
           scheduler. Check the Launch Statistics and Scheduler Statistics sections for further details.                 
 
     Section: Memory Workload Analysis
     ---------------------------------------------------------------------- --------------- ------------------------------
-    Memory Throughput                                                         Gbyte/second                         101.75
-    Mem Busy                                                                             %                          11.85
-    Max Bandwidth                                                                        %                          52.45
+    Memory Throughput                                                         Gbyte/second                         101.43
+    Mem Busy                                                                             %                          11.81
+    Max Bandwidth                                                                        %                          52.25
     L1/TEX Hit Rate                                                                      %                          11.12
     L2 Compression Success Rate                                                          %                              0
     L2 Compression Ratio                                                                                                0
     L2 Hit Rate                                                                          %                          50.00
-    Mem Pipes Busy                                                                       %                           4.56
+    Mem Pipes Busy                                                                       %                           4.54
     ---------------------------------------------------------------------- --------------- ------------------------------
 
     Section: Occupancy
@@ -53,11 +53,11 @@
     Block Limit Warps                                                                block                              8
     Theoretical Active Warps per SM                                                   warp                             64
     Theoretical Occupancy                                                                %                            100
-    Achieved Occupancy                                                                   %                          28.44
-    Achieved Active Warps Per SM                                                      warp                          18.20
+    Achieved Occupancy                                                                   %                          28.46
+    Achieved Active Warps Per SM                                                      warp                          18.21
     ---------------------------------------------------------------------- --------------- ------------------------------
     WRN   This kernel's theoretical occupancy is not impacted by any block limit. The difference between calculated     
-          theoretical (100.0%) and measured achieved occupancy (28.4%) can be the result of warp scheduling overheads   
+          theoretical (100.0%) and measured achieved occupancy (28.5%) can be the result of warp scheduling overheads   
           or workload imbalances during the kernel execution. Load imbalances can occur between warps within a block    
           as well as across blocks of the same kernel. See the CUDA Best Practices Guide                                
           (https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html#occupancy) for more details on           

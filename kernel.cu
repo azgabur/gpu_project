@@ -183,8 +183,8 @@ __global__ void kernel_account_balance_optimalized (
 // -----------------------------------------------------------------------------
 template<size_t BLOCK_SIZE>
 __global__ void kernel_sums_per_period_optimalized (
-    const int* __restrict__ account_balance_d,
-    int* __restrict__ sums_per_period_d,
+    const int* account_balance_d,
+    int* sums_per_period_d,
     size_t clients_num,
     size_t periods_num)
 {
